@@ -1,0 +1,91 @@
+p {
+  margin: 2px;
+}
+
+select {
+  padding: 5px;
+  width: 100%;
+}
+
+#addAccount {
+  position: absolute;
+  width: 5%;
+  margin-left: 90%;
+}
+
+.container {
+  margin-left: 10px;
+  margin-top: 10px;
+}
+
+.contain {
+  margin-left: 20px;
+  margin-top: 20px;
+}
+
+.accountButton {
+  width: 100%;
+  padding: 5px;
+  margin: 1px;
+}
+
+.search {
+  width: 25%;
+}
+
+.searchBox {
+  width: 55%;
+  border-radius: 5px;
+  border: 1px solid;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 5px;
+  margin-bottom: 5px;
+}
+
+#searchOption {
+  width: 45%;
+  padding: 5px;
+  margin-bottom: 5px;
+  border-radius: 5px;
+
+}
+
+.searchList {
+  width: 100%;
+  list-style: none;
+  margin: 1px;
+  padding: 12px;
+  text-align: left;
+  background-color: #f2f2f2;
+  border-radius: 15px;
+  height: 90vh;
+  overflow-y: scroll;
+}
+
+#saveAccount {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  margin-right: 20px;
+}
+
+.accountInfoBox {
+  display: flex;
+}
+
+.leftInfo {
+  width: 100%;
+}
+
+.rightInfo {
+  width: 100%;
+  margin-left: 5%;
+}
+
+#number {
+  width: 80%
+}
+
+#optText {
+  margin-left: 5%;
+}
