@@ -1,6 +1,7 @@
 import React from 'react';
 import firebase from '../fbinit'
 import pdfDoc from 'jspdf'
+
 export default class SearchAccounts extends React.Component {
 
   constructor(props) {
@@ -16,7 +17,8 @@ export default class SearchAccounts extends React.Component {
       saveEdit: 'Saved..',
       saveEditToggle: false,
       deleteEdit: 'Delete',
-      notificationClass: 'btnNotification hide'
+      notificationClass: 'btnNotification hide',
+      emailPDF: false
     }
 
 
@@ -60,6 +62,8 @@ export default class SearchAccounts extends React.Component {
     this.refs.iPriceInputToggle.value = ""
     this.refs.screenPriceInput.value = ""
     this.refs.screenPriceInputToggle.value = ""
+    this.refs.panesInput.value = ""
+    this.refs.emailPDFInput.value = ""
   }
 
   shine(i) {
@@ -75,15 +79,24 @@ export default class SearchAccounts extends React.Component {
   }
 
    handleInfoChange(e) {
-     var currently = this.state.current;
-     currently[e.target.name] = e.target.value
-     if(e.target.name=="oPriceToggle" || e.target.name=="iPriceToggle" || e.target.name=="screenPriceToggle"){
-       currently[e.target.name] = e.target.checked
+
+     this.setState({emailPDF: false})
+     var changeToSave = false
+     if(e.target.name!=="emailPDF"){
+       var currently = this.state.current;
+       currently[e.target.name] = e.target.value
+       if(e.target.name=="oPriceToggle" || e.target.name=="iPriceToggle" || e.target.name=="screenPriceToggle"){
+         currently[e.target.name] = e.target.checked
+
+       }
+
+       this.setState({current: currently})
+     } else {
+       this.setState({emailPDF: e.target.checked})
+       changeToSave = true
      }
 
-     this.setState({current: currently})
-
-     if(this.state.creatingAccount == false) {
+     if(this.state.creatingAccount == false && changeToSave == false) {
        this.setState({
          saveEdit: 'Save',
          saveEditToggle: true,
@@ -105,18 +118,24 @@ export default class SearchAccounts extends React.Component {
      this.refs.addAccount.classList.add('disabled')
 
    }
+
   saveAccountInfo() {
+
       if(this.state.creatingAccount){
-        var db = firebase.database().ref('accounts')
-        var newString = db.push(this.state.current).key
-        //db.ref(newString).set({stringID: newString})
+        var currently = this.state.current
+        var db = firebase.database()
+        var newString = db.ref('accounts').push(currently).key
+        currently.stringID = newString
+        db.ref('accounts/' + newString).set(currently)
+        this.refreshIt(false)
       } else {
           db = firebase.database().ref('accounts/'+this.state.current.stringID)
           db.set(this.state.current)
       }
+
       this.refs.btnSaveAccount.classList.add('disabled')
       this.refs.addAccount.classList.remove('disabled')
-      this.setState({saveEdit: 'Saved..', deleteEdit: 'Delete', saveEditToggle: false})
+      this.setState({saveEdit: 'Saved..', deleteEdit: 'Delete', saveEditToggle: false, creatingAccount: false})
 
   }
 
@@ -145,26 +164,40 @@ export default class SearchAccounts extends React.Component {
       } else {
         var db = firebase.database().ref('accounts/'+this.state.current.stringID)
         db.remove()
+        this.refreshIt(true)
       }
     }
 }
 
-  generatePDF() {
+  refreshIt(deleteIt) {
+    var erase = []
+    if(deleteIt){
+      var erase2 = {}
+      this.clearAccountInfo()
+      this.setState({current: erase2})
+    }
+    this.setState({accounts: erase})
+    this.componentWillMount()
+  }
 
+  generatePDF(bottomHalf) {
+    var thisR = this.state.current
     var doc = new pdfDoc()
     doc.setFontSize(24)
-    doc.text(40,20, 'Windobros ')
-    doc.text(176,20, 'Invoice')
-    doc.setFontSize(12)
+    doc.text(33,20, 'Windobros ')
+    doc.text(166,20, 'Invoice')
+    doc.setFontSize(10)
     doc.text(18,28, '46 E Point Drive Apt 1202, Draper, UT 84020')
-    doc.text(46,34, '(801) 899-3930')
+    doc.text(40,34, '(801) 899-3930')
+
+    doc.line(15,42,200,42)
 
     doc.setFontType('bold')
-    doc.text(18,45,'Service Address:')
-    doc.text(85,45,'Invoice Number')
-    doc.text(150,45,'Bill To:')
-    doc.text(75,60,'Service Date')
-    doc.text(92,65,'ETA')
+    doc.text(18,50,'Service Address:')
+    doc.text(90,50,'Invoice Number')
+    doc.text(150,50,'Bill To:')
+    doc.text(100,65,'Service Date','right')
+    doc.text(100,70,'ETA','right')
 
     doc.text(30,82,'Type')
     doc.text(78,82,'Description')
@@ -173,29 +206,30 @@ export default class SearchAccounts extends React.Component {
     doc.text(130,115,'Total')
     doc.text(30,130,'Notes:')
 
-    doc.line(20,75,195,75)
+    doc.line(15,75,200,75)
 
     doc.setFontType('normal')
-    doc.text(20,50,this.state.current.name)
-    doc.text(20,55,this.state.current.address)
-    doc.text(20,60,this.state.current.city + ", " + "UT")
-    doc.text(20,65,this.state.current.number)
+    if(thisR.name!==undefined){doc.text(20,55,thisR.name)}
+    if(thisR.address!==undefined){doc.text(20,60,thisR.address)}
+    if(thisR.city!==undefined){doc.text(20,65,thisR.city + ", " + "UT")}
+    if(thisR.number!==undefined){doc.text(20,70,thisR.number)}
 
-    var date = new Date(this.state.current.nextAppt)
-    var year = date.getFullYear()
-    var month = date.getMonth()
-    var day = date.getDate()
+    if(thisR.nextAppt!==undefined){
+      var date = new Date(this.state.current.nextAppt)
+      var year = date.getFullYear()
+      var month = date.getMonth()
+      var day = date.getDate()
+      doc.text(103,55,String(year)+String(month+1)+String(day+1),'center')
+      doc.text(103,65,String(month+1)+'/'+String(day+1)+'/'+String(year))
+      doc.text(103,70,this.state.current.nextApptTime)
+    }
 
-    doc.text(87,50,String(year)+String(month+1)+String(day+1))
-    doc.text(103,60,String(month+1)+'/'+String(day+1)+'/'+String(year))
-    doc.text(103,65,this.state.current.nextApptTime)
-
-    doc.text(152,50,this.state.current.name)
-    doc.text(152,55,this.state.current.address)
-    doc.text(152,60,this.state.current.city + ", " + "UT")
+    if(thisR.name!==undefined){doc.text(152,55,thisR.name)}
+    if(thisR.address!==undefined){doc.text(152,60,thisR.address)}
+    if(thisR.city!==undefined){doc.text(152,65,thisR.city + ", " + "UT")}
 
     var total = 0
-    doc.text(30,90,this.state.current.frequency)
+    if(thisR.frequency!==undefined){doc.text(30,90,thisR.frequency)}
     if(this.state.current.oPriceToggle){
       doc.text(78,90,'Exterior')
       doc.text(176,90,"$"+this.state.current.oPrice+".00",'right')
@@ -215,29 +249,122 @@ export default class SearchAccounts extends React.Component {
 
     doc.text(176,115,"$"+total+".00",'right')
 
-    doc.line(20,120,195,120)
+    doc.line(15,120,200,120)
 
     if(this.state.current.invoiceNotes!==undefined){
       var split = doc.splitTextToSize(this.state.current.invoiceNotes,135)
       doc.text(45,130,split)
     }
 
-
     doc.line(0,150,210,150)
-    doc.save('yum.pdf')
 
+    //BottomHalf
+
+    if(bottomHalf==false){
+
+      var bH = 108
+
+      doc.setFontSize(10)
+      doc.setFontType('bold')
+      doc.text(18,50+bH,'Service Address:')
+      doc.text(90,50+bH,'Invoice Number')
+      doc.text(150,50+bH,'Bill To:')
+      doc.text(100,65+bH,'Service Date','right')
+      doc.text(100,70+bH,'ETA','right')
+
+      doc.text(30,82+bH,'Type')
+      doc.text(78,82+bH,'Description')
+      doc.text(160,82+bH,'Price')
+
+      doc.text(130,115+bH,'Total')
+      doc.text(30,130+bH,'Notes:')
+
+      doc.line(15,75+bH,200,75+bH)
+
+      doc.setFontType('normal')
+      if(thisR.name!==undefined){doc.text(20,55+bH,thisR.name)}
+      if(thisR.address!==undefined){doc.text(20,60+bH,thisR.address)}
+      if(thisR.city!==undefined){doc.text(20,65+bH,thisR.city + ", " + "UT")}
+      if(thisR.number!==undefined){doc.text(20,70+bH,thisR.number)}
+
+      if(thisR.nextAppt!==undefined){
+        var date = new Date(this.state.current.nextAppt)
+        var year = date.getFullYear()
+        var month = date.getMonth()
+        var day = date.getDate()
+        doc.text(103,55+bH,String(year)+String(month+1)+String(day+1),'center')
+        doc.text(103,65+bH,String(month+1)+'/'+String(day+1)+'/'+String(year))
+        doc.text(103,70+bH,this.state.current.nextApptTime)
+      }
+
+      if(thisR.name!==undefined){doc.text(152,55+bH,thisR.name)}
+      if(thisR.address!==undefined){doc.text(152,60+bH,thisR.address)}
+      if(thisR.city!==undefined){doc.text(152,65+bH,thisR.city + ", " + "UT")}
+
+      var total = 0
+      if(thisR.frequency!==undefined){doc.text(30,90+bH,thisR.frequency)}
+      if(this.state.current.oPriceToggle){
+        doc.text(78,90+bH,'Exterior')
+        doc.text(176,90+bH,"$"+this.state.current.oPrice+".00",'right')
+        total += Number(this.state.current.oPrice)
+      }
+      if(this.state.current.iPriceToggle){
+        doc.text(78,95+bH,'Interior')
+        doc.text(176,95+bH,"$"+this.state.current.iPrice+".00",'right')
+        total += Number(this.state.current.iPrice)
+      }
+      if(this.state.current.screenPriceToggle){
+        doc.text(78,100+bH,'Screens')
+        doc.text(176,100+bH,"$"+this.state.current.screenPrice+".00",'right')
+        total += Number(this.state.current.screenPrice)
+    }
+
+
+      doc.text(176,115+bH,"$"+total+".00",'right')
+
+      doc.line(15,120+bH,200,120+bH)
+      console.log(this.state.current.notes)
+      if(this.state.current.notes!==undefined){
+        var split = doc.splitTextToSize(this.state.current.notes,135)
+        doc.text(45,130+bH,split)
+      }
+
+      doc.setFontSize(10)
+      doc.setFontType('bold')
+      doc.text(30.5,155+bH,'Actual Time In','center')
+      doc.line(46,148+bH,46,180+bH)
+      doc.text(49,155+bH,'Time Out')
+      doc.line(67,148+bH,67,180+bH)
+      doc.text(101,155+bH,'On Site','center')
+      doc.line(135,148+bH,135,180+bH)
+      doc.text(140,155+bH,'Referred By')
+      doc.line(165,148+bH,165,180+bH)
+      doc.text(182.5,155+bH,'Panes','center')
+      if(thisR.panes!==undefined){doc.text(182.5,170+bH,thisR.panes,'center')}
+
+      doc.line(15,160+bH,200,160+bH)
+
+      doc.rect(15,148+bH,185,32)
+    }
+
+
+
+
+
+    doc.save('Invoice - '+this.state.current.name+'.pdf')
 
 
   }
 
   checkPDFCreation() {
-
-    alert(this.state.current.frequency)
-    if(this.state.current.frequency==undefined){
-      alert("Update: Frequency")
-    } else {
-      this.generatePDF()
-    }
+      this.generatePDF(this.state.emailPDF)
+      var thisR = this.state.current
+      if(thisR.nextAppt!==undefined){thisR.lastAppt = thisR.nextAppt}
+      this.setState({
+        emailPDF: false,
+        current: thisR
+      })
+      this.saveAccountInfo()
   }
 
 
@@ -252,7 +379,7 @@ export default class SearchAccounts extends React.Component {
     return(
       <div className="contain row">
 
-        <button ref="addAccount" id="addAccount" className="btn btn-primary" onClick={() => this.startCreatingAccount()}>+</button>
+        <button ref="addAccount" id="addAccount" className="btn btn-success" onClick={() => this.startCreatingAccount()}>Add</button>
         <div className="search">
           <div style={{display: 'flex'}}>
             <input className="searchBox" placeholder="Search" value={this.state.searchString} onChange={this.updateSearchBox.bind(this)}/>
@@ -279,18 +406,19 @@ export default class SearchAccounts extends React.Component {
             <div className="accountInfoBox">
 
               <div className="leftInfo">
-                <p>Name</p><input ref="nameInput" className="accountInfo" value={this.state.current.name} name='name' onChange={this.handleInfoChange.bind(this)}/>
-                <p>Number</p><input ref="numberInput" className="number accountInfo" value={this.state.current.number} name='number' onChange={this.handleInfoChange.bind(this)} />
+                <p className="para">Name</p><input ref="nameInput" className="accountInfo" value={this.state.current.name} name='name' onChange={this.handleInfoChange.bind(this)}/>
+                <p className="para">Number</p><input ref="numberInput" className="withCheckbox accountInfo" value={this.state.current.number} name='number' onChange={this.handleInfoChange.bind(this)} />
                 <input ref="optInTextInput" className="optText" type="checkbox" value={this.state.current.optInText} name='optInText' onChange={this.handleInfoChange.bind(this)}/>
-                <p>Address</p><input ref="addressInput" className="accountInfo" value={this.state.current.address} name='address' onChange={this.handleInfoChange.bind(this)}/>
-                <p>City</p><input ref="cityInput" className="accountInfo" value={this.state.current.city} name='city' onChange={this.handleInfoChange.bind(this)}/>
-                <p>Notes</p><textarea ref="notesInput" className="accountInfo" value={this.state.current.notes} name='notes' onChange={this.handleInfoChange.bind(this)}/>
-                <p>Invoice Notes</p><textarea ref="invoiceNotesInput" className="accountInfo" value={this.state.current.invoiceNotes} name='invoiceNotes' onChange={this.handleInfoChange.bind(this)}/>
-                <button className="btn btn-warning" onClick={() => this.checkPDFCreation()}>Generate Invoice</button>
+                <p className="para">Address</p><input ref="addressInput" className="accountInfo" value={this.state.current.address} name='address' onChange={this.handleInfoChange.bind(this)}/>
+                <p className="para">City</p><input ref="cityInput" className="accountInfo" value={this.state.current.city} name='city' onChange={this.handleInfoChange.bind(this)}/>
+                <p className="para">Internal Notes</p><textarea ref="notesInput" className="accountInfo" value={this.state.current.notes} name='notes' onChange={this.handleInfoChange.bind(this)}/>
+                <p className="para">Invoice Notes</p><textarea ref="invoiceNotesInput" className="accountInfo" value={this.state.current.invoiceNotes} name='invoiceNotes' onChange={this.handleInfoChange.bind(this)}/>
+                <button className="btn btn-warning generatePDF" onClick={() => this.checkPDFCreation()}>Generate Invoice</button>
+                <input ref="emailPDFInput" type='checkbox' className="optText" name="emailPDF" checked={this.state.emailPDF} onChange={this.handleInfoChange.bind(this)}/>
               </div>
 
               <div className="rightInfo">
-                <p>Frequency</p>
+                <p className="para">Frequency</p>
                 <select ref="frequencyInput" className="accountInfo" value={this.state.current.frequency} name='frequency' onChange={this.handleInfoChange.bind(this)}>
                   <option value="">None</option>
                   <option value="Annual">Annual</option>
@@ -299,15 +427,16 @@ export default class SearchAccounts extends React.Component {
                   <option value="First Time Service">First Time Service</option>
                 </select>
 
-                <p>Last Appointment</p><input ref="lastApptInput" type="date"className="accountInfo" value={this.state.current.lastAppt} name='lastAppt' onChange={this.handleInfoChange.bind(this)}/>
-                <p>Next Appointment</p><input ref="nextApptInput" type="date"className="accountInfo" value={this.state.current.nextAppt} name='nextAppt' onChange={this.handleInfoChange.bind(this)}/>
-                <p>Time</p><input type="time" ref="nextApptTimeInput" className="accountInfo" value={this.state.current.nextApptTime} name='nextApptTime' onChange={this.handleInfoChange.bind(this)}/>
-                <p>Exterior Price</p><input type="number" ref="oPriceInput" className="accountInfo" value={this.state.current.oPrice} name='oPrice' onChange={this.handleInfoChange.bind(this)}/>
+                <p className="para">Last Appointment</p><input ref="lastApptInput" type="date"className="accountInfo" value={this.state.current.lastAppt} name='lastAppt' onChange={this.handleInfoChange.bind(this)}/>
+                <p className="para">Next Appointment</p><input ref="nextApptInput" type="date"className="accountInfo" value={this.state.current.nextAppt} name='nextAppt' onChange={this.handleInfoChange.bind(this)}/>
+                <p className="para">Time</p><input type="time" ref="nextApptTimeInput" className="accountInfo" value={this.state.current.nextApptTime} name='nextApptTime' onChange={this.handleInfoChange.bind(this)}/>
+                <p className="para">Exterior Price</p><input type="number" ref="oPriceInput" className="withCheckbox accountInfo" value={this.state.current.oPrice} name='oPrice' onChange={this.handleInfoChange.bind(this)}/>
                 <input ref="oPriceInputToggle" type="checkbox" className="optText" checked={this.state.current.oPriceToggle} name='oPriceToggle' onChange={this.handleInfoChange.bind(this)}/>
-                <p>Interior Price</p><input type="number" ref="iPriceInput" className="accountInfo" value={this.state.current.iPrice} name='iPrice' onChange={this.handleInfoChange.bind(this)}/>
+                <p className="para">Interior Price</p><input type="number" ref="iPriceInput" className="withCheckbox accountInfo" value={this.state.current.iPrice} name='iPrice' onChange={this.handleInfoChange.bind(this)}/>
                 <input ref="iPriceInputToggle" type="checkbox" className="optText" checked={this.state.current.iPriceToggle} name='iPriceToggle' onChange={this.handleInfoChange.bind(this)}/>
-                <p>Screens Price</p><input type="number" ref="screenPriceInput" className="accountInfo" value={this.state.current.screenPrice} name='screenPrice' onChange={this.handleInfoChange.bind(this)}/>
+                <p className="para">Screens Price</p><input type="number" ref="screenPriceInput" className="withCheckbox accountInfo" value={this.state.current.screenPrice} name='screenPrice' onChange={this.handleInfoChange.bind(this)}/>
                 <input ref="screenPriceInputToggle" type="checkbox" className="optText" checked={this.state.current.screenPriceToggle} name='screenPriceToggle' onChange={this.handleInfoChange.bind(this)}/>
+                <p className="para">Panes</p><input ref="panesInput" type="number" className="withCheckbox accountInfo" value={this.state.current.panes} name='panes' onChange={this.handleInfoChange.bind(this)}/>
 
               </div>
             </div>
@@ -325,11 +454,18 @@ export default class SearchAccounts extends React.Component {
 /*
   name
   number
-  optInText
   address
   city
   frequency
   lastAppt
   nextAppt
   nextApptTime
+  oPrice
+  iPrice
+  screenPrice
+  Panes
+  notes
+  invoiceNotes
+
+
 */
