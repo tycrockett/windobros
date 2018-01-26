@@ -53,19 +53,31 @@ select {
 
 .searchBox {
   width: 55%;
-  border-radius: 5px;
-  border: 1px solid;
   padding-top: 10px;
   padding-bottom: 10px;
   padding-left: 5px;
   margin-bottom: 5px;
+  outline: none;
+  border: none;
+  border-bottom: 1px solid;
+  border-color: #d6d6d6;
+}
+
+.searchBox:focus {
+  border: none;
+  border-bottom: 3px solid;
+  border-color: #565656;
+
 }
 
 #searchOption {
   width: 45%;
   padding: 5px;
   margin-bottom: 5px;
-  border-radius: 5px;
+  border: none;
+  border-bottom: 1px solid;
+  border-color: #d6d6d6;
+  outline: none;
 
 }
 
@@ -127,12 +139,10 @@ select {
 .accountInfo:Focus {
   outline: none;
   border: none;
-  border-bottom: 2px solid;
-  border-color: #44e6ff;
+  border-bottom: 3px solid;
+  border-color: #565656;
   padding-top: 5px;
   padding-bottom: 5px;
-  padding-left: 5px;
-  border-radius: 2px;
 }
 
 .withCheckbox {

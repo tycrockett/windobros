@@ -221,7 +221,7 @@ export default class SearchAccounts extends React.Component {
       var day = date.getDate()
       doc.text(103,55,String(year)+String(month+1)+String(day+1),'center')
       doc.text(103,65,String(month+1)+'/'+String(day+1)+'/'+String(year))
-      doc.text(103,70,this.state.current.nextApptTime)
+      if(thisR.nextApptTime!==undefined){doc.text(103,70,thisR.nextApptTime)}
     }
 
     if(thisR.name!==undefined){doc.text(152,55,thisR.name)}
@@ -230,20 +230,20 @@ export default class SearchAccounts extends React.Component {
 
     var total = 0
     if(thisR.frequency!==undefined){doc.text(30,90,thisR.frequency)}
-    if(this.state.current.oPriceToggle){
+    if(thisR.oPriceToggle && thisR.oPrice!==undefined){
       doc.text(78,90,'Exterior')
-      doc.text(176,90,"$"+this.state.current.oPrice+".00",'right')
-      total += Number(this.state.current.oPrice)
+      doc.text(176,90,"$"+thisR.oPrice+".00",'right')
+      total += Number(thisR.oPrice)
     }
-    if(this.state.current.iPriceToggle){
+    if(thisR.iPriceToggle && thisR.iPrice!==undefined){
       doc.text(78,95,'Interior')
-      doc.text(176,95,"$"+this.state.current.iPrice+".00",'right')
-      total += Number(this.state.current.iPrice)
+      doc.text(176,95,"$"+thisR.iPrice+".00",'right')
+      total += Number(thisR.iPrice)
     }
-    if(this.state.current.screenPriceToggle){
+    if(thisR.screenPriceToggle && thisR.screenPrice!==undefined){
       doc.text(78,100,'Screens')
-      doc.text(176,100,"$"+this.state.current.screenPrice+".00",'right')
-      total += Number(this.state.current.screenPrice)
+      doc.text(176,100,"$"+thisR.screenPrice+".00",'right')
+      total += Number(thisR.screenPrice)
   }
 
 
@@ -294,7 +294,7 @@ export default class SearchAccounts extends React.Component {
         var day = date.getDate()
         doc.text(103,55+bH,String(year)+String(month+1)+String(day+1),'center')
         doc.text(103,65+bH,String(month+1)+'/'+String(day+1)+'/'+String(year))
-        doc.text(103,70+bH,this.state.current.nextApptTime)
+        if(thisR.nextApptTime!==undefined){doc.text(103,70+bH,thisR.nextApptTime)}
       }
 
       if(thisR.name!==undefined){doc.text(152,55+bH,thisR.name)}
@@ -303,20 +303,20 @@ export default class SearchAccounts extends React.Component {
 
       var total = 0
       if(thisR.frequency!==undefined){doc.text(30,90+bH,thisR.frequency)}
-      if(this.state.current.oPriceToggle){
+      if(thisR.oPriceToggle && thisR.oPrice!==undefined){
         doc.text(78,90+bH,'Exterior')
-        doc.text(176,90+bH,"$"+this.state.current.oPrice+".00",'right')
-        total += Number(this.state.current.oPrice)
+        doc.text(176,90+bH,"$"+thisR.oPrice+".00",'right')
+        total += Number(thisR.oPrice)
       }
-      if(this.state.current.iPriceToggle){
+      if(thisR.iPriceToggle && thisR.iPrice!==undefined){
         doc.text(78,95+bH,'Interior')
-        doc.text(176,95+bH,"$"+this.state.current.iPrice+".00",'right')
-        total += Number(this.state.current.iPrice)
+        doc.text(176,95+bH,"$"+thisR.iPrice+".00",'right')
+        total += Number(thisR.iPrice)
       }
-      if(this.state.current.screenPriceToggle){
+      if(thisR.screenPriceToggle && thisR.screenPrice!==undefined){
         doc.text(78,100+bH,'Screens')
-        doc.text(176,100+bH,"$"+this.state.current.screenPrice+".00",'right')
-        total += Number(this.state.current.screenPrice)
+        doc.text(176,100+bH,"$"+thisR.screenPrice+".00",'right')
+        total += Number(thisR.screenPrice)
     }
 
 
