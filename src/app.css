@@ -7,10 +7,26 @@ select {
   width: 100%;
 }
 
+.btnBar {
+  width: 70%;
+  height: 15px;
+  border: 1px solid;
+}
+
+#accountThis {
+  display:inline;
+}
+
 #addAccount {
-  position: absolute;
-  width: 8%;
-  margin-left: 80%;
+  width: 10%;
+  margin-left: 70%;
+  text-align: center;
+}
+
+.all-btn {
+  width: 100%;
+  padding-left: 15%;
+  margin-bottom: 4px;
 }
 
 .container {
@@ -41,14 +57,24 @@ select {
   padding-right: 3px;
   margin-left: 5px;
   margin-top: -1px;
+  font-size: 8pt;
+  font-weight: bold;
+  color: black;
+
+}
+
+.btn:hover {
+  box-shadow: 2px 2px 2px grey;
 }
 
 .hide {
   visibility: hidden;
+  display: none;
 }
 
 .search {
-  width: 25%;
+  width: 15%;
+  min-width: 250px;
 }
 
 .searchBox {
@@ -92,9 +118,13 @@ select {
   border-bottom-right-radius: 0px;
   border: 1px solid;
   border-color: #d6d6d6;
-  height: 90vh;
+  height: 85vh;
   overflow-y: scroll;
   min-height: 700px;
+}
+
+.accountButton {
+
 }
 
 #saveAccount {
@@ -120,11 +150,12 @@ select {
 }
 
 .optText {
-  margin-left: 5%;
+  margin-left: 10%;
 }
 
 .generatePDF {
   margin-top: 15px;
+  margin-bottom: 15px;
 }
 
 .accountInfo {
@@ -139,8 +170,8 @@ select {
 .accountInfo:Focus {
   outline: none;
   border: none;
-  border-bottom: 3px solid;
-  border-color: #565656;
+  border-bottom: 2px solid;
+  border-color: #42bff4;
   padding-top: 5px;
   padding-bottom: 5px;
 }
@@ -149,7 +180,196 @@ select {
   width: 80%
 }
 
+
+.accountInfoDrop {
+  width: 100%;
+}
+
 .para {
   font-weight: bold;
   color: #595959;
+}
+
+.showHistory {
+  border: 1px solid;
+  margin-top: 10px;
+}
+
+#invoiceHistory {
+  flex-direction: column;
+  margin-top: 10px;
+  border: 2px solid;
+  border-radius: 5px;
+  padding: 10px;
+  border-color: #d6d6d6;
+  display: flex;
+  width: 95%;
+}
+
+#invoiceTable {
+  width: 90%;
+  margin-left: 5%;
+}
+
+#thDate {
+  width: 30%;
+  text-align: center;
+}
+
+#thPrice {
+  width: 35%;
+  text-align: center;
+}
+
+#thPaid {
+  width: 25%;
+  text-align: center;
+}
+
+#thCancel {
+  width: 25%;
+  text-align: center;
+}
+
+
+#textLeftPadding {
+  border-left: 2px solid;
+  border-color: #d6d6d6;
+}
+
+@media only screen and (max-width: 1300px) {
+  #textLeftPadding {
+      padding-left: 380px;
+      border: none;
+  }
+  .search {
+    width: 30%;
+  }
+}
+
+@media only screen and (min-width: 1300px) {
+  #textLeftPadding {
+      padding-left: 30px;
+  }
+}
+
+#messagesArea {
+  margin-top: 30px;
+  width: 100%;
+  min-width: 400px;
+  border-radius: 5px;
+  height: 60vh;
+  border: 1px solid;
+  border-color: #727272;
+  /*background-color: #42a1f4;*/
+  box-shadow: 1px 1px 1px 1px grey;
+}
+
+#messages {
+  margin-top: 3%;
+  margin-left: 3%;
+  width: 94%;
+  height: 42vh;
+  margin-bottom: 1vh;
+  background-color: white;
+  border: 1px solid;
+  border-radius: 5px;
+  border-color: #727272;
+  padding: 5px;
+}
+
+#writeMessage {
+  height: 15vh;
+}
+
+#writeArea {
+  margin-left: 3%;
+  width: 94%;
+  height: 65%;
+  padding: 5px;
+  resize: none;
+  border-radius: 5px;
+  border-color: #727272;
+  box-shadow: 1px 1px 1px 1px grey;
+}
+
+#writeArea:hover {
+  box-shadow: 4px 4px 4px grey;
+}
+
+#btnSend {
+  width: 30%;
+  margin-left: 65%;
+}
+
+.textWho {
+  font-weight: bold;
+  color: #727272;
+  margin-left: 0px;
+}
+
+.textWhat {
+  margin-left: 10px;
+  margin-top: -6px;
+}
+
+.invoiceList {
+  border-bottom: 1px solid;
+  border-color: #d6d6d6;
+}
+
+td {
+  text-align: center;
+}
+
+.smallInfo {
+  font-size: 8pt;
+  color: #727272;
+}
+
+
+#centerIt {
+  text-align: center;
+  margin-bottom: 5vh;
+  padding-top: 5%;
+  padding-bottom: 5%;
+  border-radius: 5px;
+}
+
+#emailLogin {
+  display: block;
+  margin-left: 34%;
+  width: 33%;
+  text-align: center;
+  border: 1px solid;
+  border-color: #d6d6d6;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 10px;
+  outline: none;
+}
+#emailLogin:focus {
+  border-color: #42bff4;
+}
+
+#passwordLogin {
+  display: block;
+  margin-left: 34%;
+  width: 33%;
+  text-align: center;
+  border: 1px solid;
+  border-color: #d6d6d6;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 10px;
+  outline: none;
+}
+#passwordLogin:focus {
+  border-color: #42bff4;
+}
+
+#btnLogin {
+  width: 20%;
+  margin-left: 40%;
+  margin-top: 5vh
 }
