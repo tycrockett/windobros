@@ -22,7 +22,9 @@ export default class SearchAccounts extends React.Component {
       emailPDF: false,
       searchOption: 'Name',
       messages: [],
-      invoices: []
+      invoices: [],
+      invoiceDate: 0,
+      invoiceNumber: 0
     }
 
     let totalPrice = 0
@@ -30,6 +32,12 @@ export default class SearchAccounts extends React.Component {
   }
 
   componentWillMount() {
+    firebase.database().ref('Settings').once('value', (data) => {
+      var tmpDate = data.val().invoiceDate
+      var tmpNum = data.val().invoiceNumber
+      this.setState({invoiceDate: tmpDate})
+      this.setState({invoiceNumber: tmpNum})
+    })
     var db = firebase.database().ref('accounts')
     db.once('value', (data) => {
       var getData = data.val();
@@ -210,16 +218,16 @@ export default class SearchAccounts extends React.Component {
   }
 
 
-  checkPDFCreation() {
-    if(this.state.current.nextAppt==undefined || this.state.current.nextAppt==''){
+  checkPDFCreation(iTmp,tmp) {
+    if(iTmp.nextAppt==undefined || iTmp.nextAppt==''){
       alert("Update Next Appointment Date")
     } else {
-      this.generatePDF(this.state.emailPDF)
-      var thisR = this.state.current
+      this.generatePDF(this.state.emailPDF,iTmp,tmp)
+      var thisR = iTmp
       thisR.notificationCount = ''
       if(thisR.nextAppt!==undefined){
         thisR.lastAppt = thisR.nextAppt
-        thisR.nextAppt = ''
+        //thisR.nextAppt = ''
       }
       this.setState({
         emailPDF: false,
@@ -275,6 +283,9 @@ export default class SearchAccounts extends React.Component {
 
     if(this.state.searchOption=="Name"){
       if(account.name!==undefined){tmp=account.name.toLowerCase().indexOf(this.state.searchString.toLowerCase()) !== -1}
+    }
+    if(this.state.searchOption=="Number"){
+      if(account.number!==undefined){tmp=account.number.toLowerCase().indexOf(this.state.searchString.toLowerCase()) !== -1}
     }
     if(this.state.searchOption=="Next 30 Days"){
       var today = new Date()
@@ -365,8 +376,22 @@ export default class SearchAccounts extends React.Component {
 
   }
 
+  invoiceAll(accounts) {
 
-  //BEGIN RENDER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    var tmpNum=0
+    accounts.map((account) => {
+      tmpNum+=1
+      this.checkPDFCreation(account,tmpNum)
+
+    })
+
+
+
+
+  }
+
+
+  // BEGIN RENDER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   render() {
 
@@ -384,6 +409,7 @@ export default class SearchAccounts extends React.Component {
             <input className="searchBox" placeholder="Search" value={this.state.searchString} onChange={this.updateSearchBox.bind(this)}/>
             <select ref="searchOption" id="searchOption" value={this.state.searchOption} onChange={this.handleSearchChange.bind(this)}>
               <option value="Name">Name</option>
+              <option value="Number">Number</option>
               <option value="AR">AR</option>
               <option value="Needs Reschedule">Needs Reschedule</option>
               <option value="Today">Today</option>
@@ -393,8 +419,7 @@ export default class SearchAccounts extends React.Component {
             </select>
           </div>
           <div className="btn-group btn-group-justified">
-            <button className="btn btn-primary btn-sm">Invoice</button>
-            <button className="btn btn-primary btn-sm">Confirm Text</button>
+            <button className="btn btn-primary btn-sm" onClick={() => this.invoiceAll(filtered)}>Invoice All</button>
 
           </div>
 
@@ -429,7 +454,7 @@ export default class SearchAccounts extends React.Component {
                   </select>
                   <p className="para">Internal Notes</p><textarea ref="notesInput" className="accountInfo" value={this.state.current.notes} name='notes' onChange={this.handleInfoChange.bind(this)}/>
                   <p className="para">Invoice Notes</p><textarea ref="invoiceNotesInput" className="accountInfo" value={this.state.current.invoiceNotes} name='invoiceNotes' onChange={this.handleInfoChange.bind(this)}/>
-                  <button ref="BtnGenPDF" className="btn btn-sm btn-outline-primary generatePDF withCheckbox" onClick={() => this.checkPDFCreation()}>Generate Invoice</button>
+                  <button ref="BtnGenPDF" className="btn btn-sm btn-outline-primary generatePDF withCheckbox" onClick={() => this.checkPDFCreation(this.state.current,0)}>Generate Invoice</button>
                   <input ref="emailPDFInput" type='checkbox' className="optText" name="emailPDF" checked={this.state.emailPDF} onChange={this.handleInfoChange.bind(this)}/>
                 </div>
 
@@ -484,7 +509,7 @@ export default class SearchAccounts extends React.Component {
 
 
 
-        <div className="contain row" id="totalText">
+        <div className="contain row hide" id="totalText">
           <div id="textLeftPadding"></div>
           <div>
             <h3 className="accountThis">Messages <p className="btnNotification">{this.state.current.notificationCount}</p></h3>
@@ -515,12 +540,35 @@ export default class SearchAccounts extends React.Component {
     )
   }
 
-  generatePDF(bottomHalf) {
+  generatePDF(bottomHalf,iTmp,tmp) {
 
-    var thisR = this.state.current
+    if(tmp===0){tmp=1}
+    var currentInvoice = this.state.invoiceNumber
+    currentInvoice+=tmp
+
+    var nowDate = new Date()
+    nowDate = Number(nowDate.getMonth()+1)+"/"+nowDate.getDate()+"/"+nowDate.getFullYear()
+
+    var tmpDate = this.state.invoiceDate
+
+    if(tmpDate!==nowDate){
+      currentInvoice = tmp
+      this.setState({invoiceDate: nowDate})
+      tmpDate = nowDate
+    }
+
+    this.setState({invoiceNumber: currentInvoice})
+
+    firebase.database().ref('Settings').set({
+      invoiceDate: tmpDate,
+      invoiceNumber: currentInvoice
+    })
+
+
+    var thisR = iTmp
     var doc = new pdfDoc()
     doc.setFontSize(24)
-    doc.text(33,20, 'Windobros ')
+    doc.text(33,20, 'Windobros')
     doc.text(166,20, 'Invoice')
     doc.setFontSize(10)
     doc.text(18,28, '46 E Point Drive Apt 1202, Draper, UT 84020')
@@ -551,12 +599,20 @@ export default class SearchAccounts extends React.Component {
     if(thisR.number!==undefined){doc.text(20,70,thisR.number)}
 
     if(thisR.nextAppt!==undefined){
-      var date = new Date(this.state.current.nextAppt)
+      var date = new Date(thisR.nextAppt)
       var year = date.getFullYear()
       var month = date.getMonth()
       var day = date.getDate()
-      doc.text(103,55,String(year)+String(month+1)+String(day+1),'center')
+
       doc.text(103,65,String(month+1)+'/'+String(day+1)+'/'+String(year))
+      if(day<10){day="0"+String(day+1)}
+      if(month<10){month="0"+String(month+1)}
+      year = String(year).substring(String(year).length-2)
+      doc.text(103,55,String(year)+String(month)+String(day)+currentInvoice,'center')
+      doc.setFontSize(14)
+      doc.text(193,27,"#"+String(year)+String(month)+String(day)+currentInvoice,'right')
+      doc.setFontSize(10)
+
       if(thisR.nextApptTime!==undefined){doc.text(103,70,thisR.nextApptTime)}
     }
 
@@ -588,8 +644,8 @@ export default class SearchAccounts extends React.Component {
 
     doc.line(15,120,200,120)
 
-    if(this.state.current.invoiceNotes!==undefined){
-      var split = doc.splitTextToSize(this.state.current.invoiceNotes,135)
+    if(thisR.invoiceNotes!==undefined){
+      var split = doc.splitTextToSize(thisR.invoiceNotes,135)
       doc.text(45,130,split)
     }
 
@@ -625,12 +681,17 @@ export default class SearchAccounts extends React.Component {
       if(thisR.number!==undefined){doc.text(20,70+bH,thisR.number)}
 
       if(thisR.nextAppt!==undefined){
-        var date = new Date(this.state.current.nextAppt)
+        var date = new Date(thisR.nextAppt)
         var year = date.getFullYear()
         var month = date.getMonth()
         var day = date.getDate()
-        doc.text(103,55+bH,String(year)+String(month+1)+String(day+1),'center')
+
         doc.text(103,65+bH,String(month+1)+'/'+String(day+1)+'/'+String(year))
+        if(day<10){day="0"+String(day+1)}
+        if(month<10){month="0"+String(month+1)}
+        year = String(year).substring(String(year).length-2)
+        doc.text(103,55+bH,String(year)+String(month)+String(day)+currentInvoice,'center')
+
         if(thisR.nextApptTime!==undefined){doc.text(103,70+bH,thisR.nextApptTime)}
       }
 
@@ -660,8 +721,8 @@ export default class SearchAccounts extends React.Component {
       doc.text(176,115+bH,"$"+total+".00",'right')
 
       doc.line(15,120+bH,200,120+bH)
-      if(this.state.current.notes!==undefined){
-        var split = doc.splitTextToSize(this.state.current.notes,135)
+      if(thisR.notes!==undefined){
+        var split = doc.splitTextToSize(thisR.notes,135)
         doc.text(45,130+bH,split)
       }
 
@@ -687,7 +748,7 @@ export default class SearchAccounts extends React.Component {
 
 
 
-    doc.save('Invoice - '+this.state.current.name+'.pdf')
+    doc.save('Invoice - '+thisR.name+'.pdf')
 
 
   }
