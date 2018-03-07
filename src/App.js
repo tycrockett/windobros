@@ -33,7 +33,7 @@ class App extends Component {
 
 
   render() {
-    this.state.logged=true
+
     if(this.state.logged){
       return(
         <SearchAccounts />
